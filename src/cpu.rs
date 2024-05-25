@@ -16,7 +16,47 @@ pub enum Opcode {
     Addi {
         rd: usize,
         rs1: usize,
+        imm: i32,
+    },
+    Slti {
+        rd: usize,
+        rs1: usize,
+        imm: i32,
+    },
+    Sltiu {
+        rd: usize,
+        rs1: usize,
         imm: u32,
+    },
+    Xori {
+        rd: usize,
+        rs1: usize,
+        imm: i32,
+    },
+    Ori {
+        rd: usize,
+        rs1: usize,
+        imm: i32,
+    },
+    Andi {
+        rd: usize,
+        rs1: usize,
+        imm: i32,
+    },
+    Slli {
+        rd: usize,
+        rs1: usize,
+        shamt: u32,
+    },
+    Srli {
+        rd: usize,
+        rs1: usize,
+        shamt: u32,
+    },
+    Srai {
+        rd: usize,
+        rs1: usize,
+        shamt: i32,
     },
     Add {
         rd: usize,
@@ -92,21 +132,88 @@ impl Cpu {
     }
 
     fn decode(op: u32) -> Opcode {
-        let opcode = op.view_bits::<Lsb0>()[0..=6].load_le();
-        let funct3 = op.view_bits::<Lsb0>()[12..=14].load_le::<u32>();
-        let rd = op.view_bits::<Lsb0>()[7..=11].load_le();
-        let rs1 = op.view_bits::<Lsb0>()[15..=19].load_le();
-        let rs2 = op.view_bits::<Lsb0>()[20..=24].load_le();
-        let funct7 = op.view_bits::<Lsb0>()[25..=31].load_le();
+        let opcode = op.view_bits::<Lsb0>()[0..=6].load_le::<usize>();
+        let funct3 = op.view_bits::<Lsb0>()[12..=14].load_le::<usize>();
+        let rd = op.view_bits::<Lsb0>()[7..=11].load_le::<usize>();
+        let rs1 = op.view_bits::<Lsb0>()[15..=19].load_le::<usize>();
+        let rs2 = op.view_bits::<Lsb0>()[20..=24].load_le::<usize>();
+        let funct7 = op.view_bits::<Lsb0>()[25..=31].load_le::<usize>();
 
         match opcode {
             0b0010011 => {
-                let imm = op.view_bits::<Lsb0>()[20..=31].load_le::<i32>() as u32;
-                Opcode::Addi {
-                    rd,
-                    rs1,
-                    imm,
+                let imm = op.view_bits::<Lsb0>()[20..=31].load_le::<i32>();
+                match funct3 {
+                    0b000 => {
+                        Opcode::Addi {
+                            rd,
+                            rs1,
+                            imm,
+                        }
+                    },
+                    0b010 => {
+                        Opcode::Slti {
+                            rd,
+                            rs1,
+                            imm,
+                        }
+                    },
+                    0b011 => {
+                        Opcode::Sltiu {
+                            rd,
+                            rs1,
+                            imm: imm as u32,
+                        }
+                    },
+                    0b100 => {
+                        Opcode::Xori {
+                            rd,
+                            rs1,
+                            imm,
+                        }
+                    },
+                    0b110 => {
+                        Opcode::Ori {
+                            rd,
+                            rs1,
+                            imm,
+                        }
+                    },
+                    0b111 => {
+                        Opcode::Andi {
+                            rd,
+                            rs1,
+                            imm,
+                        }
+                    },
+                    0b001 => {
+                        Opcode::Slli {
+                            rd,
+                            rs1,
+                            shamt: rs2 as u32,
+                        }
+                    },
+                    0b101 => {
+                        match funct7 {
+                            0b00000_00 => {
+                                Opcode::Srli {
+                                    rd,
+                                    rs1,
+                                    shamt: rs2 as u32,
+                                }
+                            },
+                            0b01000_00 => {
+                                Opcode::Srai {
+                                    rd,
+                                    rs1,
+                                    shamt: rs2 as i32,
+                                }
+                            }
+                            _ => unimplemented!()
+                        }
+                    },
+                    _ => unimplemented!(),
                 }
+                
             },
             0b0110011 => {
                 match (funct7, funct3) {
@@ -195,7 +302,47 @@ impl Cpu {
         match opcode {
             Opcode::Addi { rd, rs1, imm } => {
                 let rs1 = self.reg.read(rs1);
-                self.reg.write(rd, rs1 + imm);
+                self.reg.write(rd, rs1 + imm as u32);
+            },
+            Opcode::Slti { rd, rs1, imm } => {
+                let rs1 = self.reg.read(rs1);
+                if (rs1 as i32) < imm {
+                    self.reg.write(rd, 1u32);
+                } else {
+                    self.reg.write(rd, 0u32);
+                }
+            },
+            Opcode::Sltiu { rd, rs1, imm } => {
+                let rs1 = self.reg.read(rs1);
+                if rs1 < imm {
+                    self.reg.write(rd, 1u32);
+                } else {
+                    self.reg.write(rd, 0u32);
+                }
+            },
+            Opcode::Xori { rd, rs1, imm } => {
+                let rs1 = self.reg.read(rs1);
+                self.reg.write(rd, rs1 ^ imm as u32);
+            },
+            Opcode::Ori { rd, rs1, imm } => {
+                let rs1 = self.reg.read(rs1);
+                self.reg.write(rd, rs1 | imm as u32);
+            },
+            Opcode::Andi { rd, rs1, imm } => {
+                let rs1 = self.reg.read(rs1);
+                self.reg.write(rd, rs1 & imm as u32);
+            },
+            Opcode::Slli { rd, rs1, shamt } => {
+                let rs1 = self.reg.read(rs1);
+                self.reg.write(rd, rs1 << shamt);
+            },
+            Opcode::Srli { rd, rs1, shamt } => {
+                let rs1 = self.reg.read(rs1);
+                self.reg.write(rd, rs1 >> shamt);
+            },
+            Opcode::Srai { rd, rs1, shamt } => {
+                let rs1 = self.reg.read(rs1);
+                self.reg.write(rd, rs1 >> shamt);
             },
             Opcode::Add { rd, rs1, rs2 } => {
                 let rs1 = self.reg.read(rs1);
@@ -213,9 +360,7 @@ impl Cpu {
                 self.reg.write(rd, rs1 << rs2);
             },
             Opcode::Slt { rd, rs1, rs2 } => {
-                let rs1 = self.reg.read(rs1);
-                let rs2 = self.reg.read(rs2);
-                if (rs1 as i32) < (rs2 as i32) {
+                if rs1 < rs2 {
                     self.reg.write(rd, 1u32);
                 } else {
                     self.reg.write(rd, 0u32);
@@ -242,8 +387,8 @@ impl Cpu {
             },
             Opcode::Sra { rd, rs1, rs2 } => {
                 let rs1 = self.reg.read(rs1);
-                let rs2 = self.reg.read(rs2);
-                self.reg.write(rd, (rs1 as i32 >> rs2 as i32) as u32);
+                let rs2 = self.reg.read(rs2) as i32;
+                self.reg.write(rd, (rs1 >> rs2) as u32);
             },
             Opcode::Or { rd, rs1, rs2 } => {
                 let rs1 = self.reg.read(rs1);
