@@ -1,7 +1,4 @@
-use crate::{
-    bus::Bus,
-    cpu::Cpu,
-};
+use crate::{bus::Bus, cpu::Cpu};
 
 pub struct Motherboard {
     pub bus: Bus,

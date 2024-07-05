@@ -4,10 +4,8 @@ pub struct Register {
 }
 
 impl Register {
-    pub fn new () -> Self {
-        Register {
-            reg: [0u32; 32]
-        }
+    pub fn new() -> Self {
+        Register { reg: [0u32; 32] }
     }
 
     pub fn read(&self, register: usize) -> u32 {
@@ -28,4 +26,3 @@ impl Register {
         }
     }
 }
-
