@@ -1,4 +1,4 @@
-use crate::{bus::Bus, cpu::Cpu};
+use crate::{bus::Bus, cpu::Cpu, rom::RomData};
 
 pub struct Motherboard {
     pub bus: Bus,
@@ -7,8 +7,15 @@ pub struct Motherboard {
 
 impl Motherboard {
     pub fn new() -> Self {
-        Motherboard {
+        Self {
             bus: Bus::new(),
+            cpu: Cpu::new(),
+        }
+    }
+
+    pub fn from_binary_file(rom: RomData) -> Self {
+        Self {
+            bus: Bus::from_binary_file(rom),
             cpu: Cpu::new(),
         }
     }

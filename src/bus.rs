@@ -1,11 +1,12 @@
 use crate::{
     memory::{Memory, MEMORY_SIZE, MEMORY_BASE},
-    rom::{Rom, ROM_SIZE, ROM_BASE},
+    rom::{Rom, RomData, ROM_SIZE, ROM_BASE},
     util::MemorySize,
 };
 use crate::memory::MEMORY_END;
 use crate::rom::ROM_END;
 
+#[derive(Default)]
 pub struct Bus {
     mem: Memory,
     rom: Rom,
@@ -13,7 +14,14 @@ pub struct Bus {
 
 impl Bus {
     pub fn new() -> Self {
-        Bus { mem: Memory::new(), rom: Rom::new() }
+        Self::default()
+    }
+
+    pub fn from_binary_file(rom: RomData) -> Self {
+        Self {
+            rom: Rom::from_binary_file(rom),
+            ..Default::default()
+        }
     }
 
     pub fn read(&self, address: u32, size: MemorySize) -> u32 {

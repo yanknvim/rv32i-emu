@@ -31,7 +31,7 @@ pub enum Opcode {
 
 impl Cpu {
     pub fn new() -> Self {
-        Cpu {
+        Self {
             reg: Register::new(),
             pc: MEMORY_BASE,
         }

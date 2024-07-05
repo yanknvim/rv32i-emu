@@ -9,11 +9,18 @@ pub struct Memory {
     mem: [u8; MEMORY_SIZE as usize],
 }
 
-impl Memory {
-    pub fn new() -> Self {
+impl Default for Memory {
+    fn default() -> Self {
         Memory {
             mem: [0u8; MEMORY_SIZE as usize],
         }
+    }
+
+}
+
+impl Memory {
+    pub fn new() -> Self {
+        Memory::default()
     }
 
     pub fn read(&self, address: u32, size: MemorySize) -> u32 {
