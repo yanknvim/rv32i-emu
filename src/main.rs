@@ -6,20 +6,34 @@ mod register;
 mod rom;
 mod util;
 
-use crate::{memory::MEMORY_BASE, motherboard::Motherboard, util::MemorySize};
+use std::fs::File;
+use std::io::prelude::*;
+use std::path::Path;
 
-fn main() {
-    let mut mb = Motherboard::new();
-    mb.bus.write(
-        MEMORY_BASE,
-        MemorySize::Word,
-        0b000000000001_00000_000_00001_00100_11,
-    );
-    mb.bus.write(
-        MEMORY_BASE + 4,
-        MemorySize::Word,
-        0b000000000010_00001_000_00010_00100_11,
-    );
+use crate::{
+    memory::MEMORY_BASE,
+    motherboard::Motherboard,
+    rom::{RomData, ROM_SIZE},
+    util::MemorySize,
+};
 
+fn main() -> std::io::Result<()> {
+    let args = std::env::args().collect::<Vec<_>>();
+    if args.len() != 2 {
+        panic!("Error: Invalid number of command line args");
+    }
+
+    let path = Path::new(&args[1]);
+
+    let bin = load_binary(&path)?;
+    let mut mb = Motherboard::from_binary_file(bin);
     mb.run();
+}
+
+fn load_binary(path: &Path) -> Result<RomData, std::io::Error> {
+    let mut f = File::open(path)?;
+    let mut buffer = [0u8; ROM_SIZE as usize];
+    f.read_exact(&mut buffer)?;
+
+    Ok(buffer)
 }

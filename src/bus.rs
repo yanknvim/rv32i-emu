@@ -1,10 +1,10 @@
-use crate::{
-    memory::{Memory, MEMORY_SIZE, MEMORY_BASE},
-    rom::{Rom, RomData, ROM_SIZE, ROM_BASE},
-    util::MemorySize,
-};
 use crate::memory::MEMORY_END;
 use crate::rom::ROM_END;
+use crate::{
+    memory::{Memory, MEMORY_BASE, MEMORY_SIZE},
+    rom::{Rom, RomData, ROM_BASE, ROM_SIZE},
+    util::MemorySize,
+};
 
 #[derive(Default)]
 pub struct Bus {

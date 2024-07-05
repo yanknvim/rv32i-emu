@@ -25,9 +25,7 @@ impl Rom {
     }
 
     pub fn from_binary_file(rom: RomData) -> Self {
-        Rom {
-            rom,
-        }
+        Rom { rom }
     }
 
     pub fn read(&self, address: u32, size: MemorySize) -> u32 {

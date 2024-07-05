@@ -15,7 +15,6 @@ impl Default for Memory {
             mem: [0u8; MEMORY_SIZE as usize],
         }
     }
-
 }
 
 impl Memory {
