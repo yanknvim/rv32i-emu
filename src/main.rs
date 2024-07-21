@@ -33,7 +33,7 @@ fn main() -> std::io::Result<()> {
 fn load_binary(path: &Path) -> Result<RomData, std::io::Error> {
     let mut f = File::open(path)?;
     let mut buffer = [0u8; ROM_SIZE as usize];
-    f.read_exact(&mut buffer)?;
+    f.read(&mut buffer)?;
 
     Ok(buffer)
 }
